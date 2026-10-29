@@ -80,6 +80,9 @@ a{color:inherit}
 .block .item{margin:0}
 .usage-text{margin:0 0 12px;line-height:1.7}
 
+.yt{display:inline-flex;margin-top:26px;line-height:0;transition:transform .2s}
+.yt:hover{transform:scale(1.08)}
+
 /* buttons & nav */
 .btn{display:block;width:100%;margin-top:34px;padding:16px;border:none;border-radius:18px;background:var(--btn);color:var(--btn-text);font:700 18px var(--font);text-align:center;text-decoration:none;cursor:pointer}
 .btn:hover{opacity:.92}
