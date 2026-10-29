@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Làm bài tập · Idioms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#e6d7c3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Idioms">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<script src="theme.js"></script>
+<style>
+.qhead{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:15px;color:var(--muted);white-space:nowrap}
+.bar{flex:1;height:8px;border-radius:99px;background:var(--tag);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--btn)}
+.sw{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.q{margin-bottom:10px}
+.q:not(.txt) .t{display:none}
+.q .tag{display:inline-block;margin-bottom:12px}
+.center{text-align:center}
+.play{padding:10px 18px;border-radius:999px;border:1px solid var(--border);background:var(--tag);color:var(--text);font:600 17px var(--font);cursor:pointer;margin-bottom:12px}
+.eye{background:none;border:none;color:var(--muted);font:15px var(--font);cursor:pointer;padding:6px 2px;margin-bottom:10px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:16px 18px;margin-bottom:12px;border-radius:18px;border:1px solid var(--border);background:var(--card);color:var(--text);font:600 19px var(--font);text-align:left;cursor:pointer}
+.opt:hover{background:var(--hover)}
+.opt.ok,.chip.ok,.mc.done{border-color:#4a9a4a;background:rgba(74,154,74,.2)}
+.opt.bad,.chip.bad,.mc.bad{border-color:#c0504d;background:rgba(192,80,77,.2)}
+.mini{border:none;background:var(--tag);border-radius:50%;width:34px;height:34px;flex:none;cursor:pointer;font-size:15px}
+.hint{margin:0 0 12px;color:var(--muted);font-size:15px}
+.chip.sel{border-color:var(--gold);background:var(--hover)}
+.ans{display:block;width:100%;margin-top:14px;padding:14px 16px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text);font:19px var(--font);outline:none}
+.ans:focus{border-color:var(--gold)}
+.fb{margin-top:18px;padding:16px 18px;border-radius:18px;background:var(--note);line-height:1.8}
+.fb.ok{border-left:5px solid #4a9a4a}.fb.bad{border-left:5px solid #c0504d}
+.fb p{margin:6px 0 0}
+.ch-ok{color:#2e8b2e;font-weight:700}.ch-bad{color:#c0392b;font-weight:700;text-decoration:underline}
+.mstat{display:flex;justify-content:space-between;margin-bottom:12px;font-size:18px;font-weight:700}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mc{padding:14px;margin-bottom:0;font-size:16px;line-height:1.5}
+.mc.sel{border-color:var(--gold);background:var(--hover)}
+.mc.done{pointer-events:none;opacity:.55}
+.rlist{list-style:none;margin:0;padding:0}
+.rlist li{padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Idioms</a>
+  <label class="switch" title="Đổi giao diện sáng/tối">
+    <input type="checkbox" id="themeSwitch" aria-label="Chế độ tối">
+    <span class="knob"></span>
+  </label>
+</header>
+<main class="wrap" id="stage"><div class="empty">Đang tải...</div></main>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nl = s => esc(s).replace(/\n/g, '<br>');
+const nrm = s => String(s ?? '').toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+const SLOTS = ['idiom_main', 'idiom_1d', 'idiom_7d', 'idiom_21d', 'idiom_30d'];
+const NO = Number(new URLSearchParams(location.search).get('no'));
+let P = null, MEANING = {}, Q = [], cur = 0, res = [], timer = null;
+let showText = false;
+try { showText = localStorage.getItem('showText') === '1'; } catch (e) {}
+
+/* ---------- âm thanh ---------- */
+function say(parts) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  setTimeout(() => parts.forEach(t => {
+    const u = new SpeechSynthesisUtterance(String(t).replace(/[()]/g, '').replace(/\//g, ','));
+    u.lang = 'en-US'; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  }), 60);
+}
+// bỏ nhãn người nói (A:, Mom:), lời chú trong ngoặc, đổi chỗ trống thành "blank"
+const clean = s => String(s).split('\n')
+  .map(l => l.replace(/^\s*(?:[A-Z][\w']*\s?){1,3}:\s*/, ''))
+  .join('. ').replace(/\([^)]*\)/g, ' ').replace(/_{2,}/g, ' blank ')
+  .replace(/(^|[\s.])'+/g, '$1').replace(/'+(?=[\s.,!?]|$)/g, '').replace(/["“”]/g, '');
+
+/* ---------- so khớp ---------- */
+function variants(s) {                                   // "a / b", "x (in one's head)"
+  const out = new Set();
+  String(s).split('/').forEach(p => { out.add(nrm(p.replace(/\([^)]*\)/g, ' '))); out.add(nrm(p.replace(/[()]/g, ' '))); });
+  return [...out].filter(Boolean);
+}
+const matchIdiom = (inp, ans) => variants(ans).includes(nrm(inp));
+function lcsMask(a, b) {                                 // ký tự nào của a khớp với b
+  const n = a.length, m = b.length, d = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    d[i][j] = a[i] === b[j] ? d[i + 1][j + 1] + 1 : Math.max(d[i + 1][j], d[i][j + 1]);
+  const mask = Array(n).fill(false);
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { mask[i] = true; i++; j++; }
+    else if (d[i + 1][j] >= d[i][j + 1]) i++; else j++;
+  }
+  return mask;
+}
+
+/* ---------- khung câu hỏi ---------- */
+const head = () => `<div class="qhead"><span>Câu ${cur + 1}/${Q.length}</span>
+  <div class="bar"><i style="width:${cur / Q.length * 100}%"></i></div>
+  <label class="sw"><input type="checkbox" id="st" ${showText ? 'checked' : ''}>Hiện text</label></div>`;
+const frame = (title, inner) => `${head()}<div class="q ${showText ? 'txt' : ''}" id="q"><span class="tag">${esc(title)}</span>${inner}<div id="fb"></div></div>`;
+const eyeBtn = '<button class="eye" id="eye">👁 Xem nội dung</button>';
+
+function finish(ok, label, html) {
+  res[cur] = { ok, label };
+  const last = cur === Q.length - 1;
+  $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? '✓ Chính xác' : '✗ Chưa đúng'}</b>${html}</div>
+    <button class="btn" id="next">${last ? 'Xem kết quả' : 'Câu tiếp →'}</button>`;
+  $('#q').classList.add('txt');
+  $('#next').onclick = () => { cur++; cur < Q.length ? show() : summary(); };
+  $('#fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function show() {
+  clearInterval(timer);
+  window.speechSynthesis && speechSynthesis.cancel();
+  const q = Q[cur];
+  if (q.k === 'dict') dictQ(q);
+  else if (q.k === 'match') matchQ(q);
+  else examQ(q.e);
+  $('#st').onchange = ev => {
+    showText = ev.target.checked;
+    try { localStorage.setItem('showText', showText ? '1' : '0'); } catch (e) {}
+    $('#q').classList.toggle('txt', showText);
+  };
+  if ($('#eye')) $('#eye').onclick = () => $('#q').classList.toggle('txt');
+  scrollTo(0, 0);
+}
+
+/* ---------- câu 1: nghe và gõ ---------- */
+function dictQ(q) {
+  $('#stage').innerHTML = frame('Nghe và gõ lại thành ngữ', `
+    <div class="block center"><button class="play" id="pl">🔊 Phát lại</button>
+      <p>Nghe rồi gõ lại thành ngữ bạn nghe được.</p><p class="t"><b>${esc(q.text)}</b></p></div>${eyeBtn}
+    <input class="ans" id="in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Gõ lại thành ngữ...">
+    <button class="btn" id="sub">Submit</button>`);
+  const play = () => say([q.text]);
+  $('#pl').onclick = play; play();
+  const go = () => {
+    const inp = $('#in').value, ok = matchIdiom(inp, q.text), u = nrm(inp);
+    let bm = [], bc = -1;
+    variants(q.text).forEach(v => { const m = lcsMask(u, v), c = m.filter(Boolean).length; if (c > bc) { bc = c; bm = m; } });
+    const colored = [...u].map((c, i) => `<span class="${bm[i] ? 'ch-ok' : 'ch-bad'}">${esc(c)}</span>`).join('') || '<i>(trống)</i>';
+    $('#in').disabled = true; $('#sub').style.display = 'none';
+    finish(ok, 'Nghe và gõ lại', `<p>Bạn gõ: ${colored}</p><p>Đáp án: <b>${esc(q.text)}</b></p>`);
+  };
+  $('#sub').onclick = go;
+  $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
+}
+
+/* ---------- câu 2-11 ---------- */
+function examQ(e) {
+  const qn = e.question;
+  if (qn && typeof qn === 'object') return qn.options ? mcQ(e) : originQ(e);
+  return (e.type === 2 || Array.isArray(e.answer)) ? fixQ(e) : tfQ(e);
+}
+
+function wireChoice(e, correct) {
+  let locked = false;
+  $$('.opt').forEach(b => b.onclick = () => {
+    if (locked) return; locked = true;
+    const ok = nrm(b.dataset.v) === nrm(correct);
+    b.classList.add(ok ? 'ok' : 'bad');
+    if (!ok) $$('.opt').forEach(x => { if (nrm(x.dataset.v) === nrm(correct)) x.classList.add('ok'); });
+    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(correct)}</b></p><p>${esc(e.explain)}</p>`);
+  });
+}
+
+function tfQ(e) {
+  $('#stage').innerHTML = frame(e.type_desc, `
+    <div class="block"><button class="play" id="pl">🔊 Phát lại</button><div class="t">${nl(e.question)}</div></div>${eyeBtn}
+    ${['Đúng', 'Sai'].map(v => `<button class="opt" data-v="${v}">${v}</button>`).join('')}`);
+  const play = () => say([clean(e.question)]);
+  $('#pl').onclick = play; play();
+  wireChoice(e, e.answer);
+}
+
+function mcQ(e) {
+  const opts = shuffle(e.question.options.slice()), L = 'ABCD';
+  $('#stage').innerHTML = frame(e.type_desc, `
+    <div class="block"><button class="play" id="pl">🔊 Phát lại</button><div class="t">${nl(e.question.conversation)}</div></div>${eyeBtn}
+    ${opts.map((o, i) => `<div class="opt" data-v="${esc(o)}" role="button" tabindex="0">
+      <button class="mini" data-i="${i}" aria-label="Nghe đáp án ${L[i]}">🔊</button><b>${L[i]}</b><span class="t">${esc(o)}</span></div>`).join('')}`);
+  const play = () => say([clean(e.question.conversation), ...opts.map((o, i) => `${L[i]}. ${o}`)]);
+  $('#pl').onclick = play; play();
+  $$('.mini').forEach(m => m.onclick = ev => { ev.stopPropagation(); say([opts[m.dataset.i]]); });
+  wireChoice(e, e.answer);
+}
+
+function fixQ(e) {
+  const toks = String(e.question).split(/\s+/).filter(Boolean);
+  $('#stage').innerHTML = frame(e.type_desc, `
+    <div class="block"><button class="play" id="pl">🔊 Phát lại</button>
+      <p class="hint">① Chạm vào từ sai &nbsp; ② Gõ lại từ đúng</p>
+      <div class="chips">${toks.map((w, i) => `<button class="chip" data-i="${i}">${esc(w)}</button>`).join('')}</div></div>
+    <input class="ans" id="in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Từ đúng...">
+    <button class="btn" id="sub">Submit</button>`);
+  const play = () => say([clean(e.question)]);
+  $('#pl').onclick = play; play();
+  $$('.chip').forEach(c => c.onclick = () => c.classList.toggle('sel'));
+  const go = () => {
+    const wrongSet = new Set(e.answer.flatMap(a => nrm(a.index_wrong).split(' ')).filter(Boolean));
+    const selSet = new Set($$('.chip.sel').flatMap(c => nrm(c.textContent).split(' ')).filter(Boolean));
+    const wrongOk = wrongSet.size === selSet.size && [...wrongSet].every(w => selSet.has(w));
+    const exFix = e.answer.map(a => nrm(a.correct_word)).sort();
+    const typed = $('#in').value.split(',').map(nrm).filter(Boolean).sort();
+    const ok = wrongOk && JSON.stringify(exFix) === JSON.stringify(typed);
+    $$('.chip').forEach(c => {
+      const w = nrm(c.textContent).split(' ').filter(Boolean);
+      const isWrong = w.some(x => wrongSet.has(x));
+      if (isWrong) c.classList.add('ok'); else if (c.classList.contains('sel')) c.classList.add('bad');
+      c.disabled = true;
+    });
+    $('#in').disabled = true; $('#sub').style.display = 'none';
+    finish(ok, e.type_desc, `<p>Từ sai: <b>${esc(e.answer.map(a => a.index_wrong).join(', '))}</b> → từ đúng: <b>${esc(e.answer.map(a => a.correct_word).join(', '))}</b></p><p>${esc(e.explain)}</p>`);
+  };
+  $('#sub').onclick = go;
+  $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
+}
+
+function originQ(e) {
+  $('#stage').innerHTML = frame(e.type_desc, `
+    <div class="block"><p>${nl(e.question.origin_story)}</p><p><b>${esc(e.question.prompt)}</b></p></div>
+    <input class="ans" id="in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Gõ thành ngữ...">
+    <button class="btn" id="sub">Submit</button>`);
+  const go = () => {
+    const ok = matchIdiom($('#in').value, e.answer);
+    $('#in').disabled = true; $('#sub').style.display = 'none';
+    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(e.answer)}</b></p><p>${esc(e.explain)}</p>`);
+  };
+  $('#sub').onclick = go;
+  $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
+}
+
+/* ---------- câu 12: nối thẻ ---------- */
+function matchQ(q) {
+  const total = q.pairs.length;
+  let left = total * 12, got = 0, sel = { L: null, R: null }, over = false;
+  const card = (p, s) => `<div class="opt mc" data-id="${p.id}" data-s="${s}" role="button" tabindex="0">${esc(s === 'L' ? p.en : p.vi)}</div>`;
+  $('#stage').innerHTML = frame('Nối thành ngữ với nghĩa trước khi hết giờ', `
+    <div class="mstat"><span>⏱ <span id="time">${left}</span>s</span><span><span id="got">0</span>/${total} cặp</span></div>
+    <div class="match" id="board">
+      <div>${shuffle(q.pairs.slice()).map(p => card(p, 'L')).join('')}</div>
+      <div>${shuffle(q.pairs.slice()).map(p => card(p, 'R')).join('')}</div>
+    </div>`);
+  const end = ok => {
+    if (over) return; over = true; clearInterval(timer);
+    const miss = q.pairs.filter(p => !$(`.mc[data-s="L"][data-id="${p.id}"]`).classList.contains('done'));
+    finish(ok, 'Nối thẻ', ok ? `<p>Bạn nối đủ ${total} cặp.</p>`
+      : `<p>${left <= 0 ? 'Hết giờ! ' : ''}Còn thiếu:</p>${miss.map(p => `<p><b>${esc(p.en)}</b> — ${esc(p.vi)}</p>`).join('')}`);
+  };
+  $('#board').onclick = ev => {
+    const c = ev.target.closest('.mc');
+    if (over || !c || c.classList.contains('done')) return;
+    const s = c.dataset.s;
+    if (s === 'L') say([q.pairs.find(p => p.id === c.dataset.id).en]);
+    $$(`.mc.sel[data-s="${s}"]`).forEach(x => x.classList.remove('sel'));
+    c.classList.add('sel'); sel[s] = c;
+    if (sel.L && sel.R) {
+      const a = sel.L, b = sel.R; sel = { L: null, R: null };
+      if (a.dataset.id === b.dataset.id) {
+        [a, b].forEach(x => { x.classList.remove('sel'); x.classList.add('done'); });
+        $('#got').textContent = ++got;
+        if (got === total) end(true);
+      } else {
+        [a, b].forEach(x => x.classList.add('bad'));
+        setTimeout(() => [a, b].forEach(x => x.classList.remove('bad', 'sel')), 450);
+      }
+    }
+  };
+  timer = setInterval(() => { left--; $('#time').textContent = Math.max(left, 0); if (left <= 0) end(false); }, 1000);
+}
+
+/* ---------- bắt đầu & kết quả ---------- */
+function build() {
+  const exam = shuffle((P.exam || []).slice()).slice(0, 10);
+  Q = [{ k: 'dict', text: P.idiom_main }, ...exam.map(e => ({ k: 'exam', e }))];
+  const pairs = SLOTS.map(id => ({ id, en: P[id], vi: MEANING[String(P[id] || '').trim().toLowerCase()] })).filter(p => p.en && p.vi);
+  if (pairs.length >= 2) Q.push({ k: 'match', pairs });
+  cur = 0; res = [];
+}
+
+function start() {
+  build();
+  $('#stage').innerHTML = `
+    <div class="hero" style="cursor:default">
+      <div class="meta"><span class="tag">Bài tập</span><span class="tag">#${NO}</span></div>
+      <h1 class="big">${esc(P.idiom_main)}</h1>
+      <p style="line-height:1.8">${Q.length} câu: nghe và gõ lại, ${Q.filter(q => q.k === 'exam').length} câu trong bộ đề${Q.some(q => q.k === 'match') ? ', và 1 câu nối thẻ có đếm ngược' : ''}.<br>
+      Câu hỏi sẽ tự phát âm thanh; mặc định nội dung được ẩn để bạn luyện nghe.</p>
+      <label class="sw"><input type="checkbox" id="st0" ${showText ? 'checked' : ''}> Hiện text của câu hỏi</label>
+    </div>
+    <button class="btn" id="go">Bắt đầu</button>`;
+  $('#st0').onchange = ev => { showText = ev.target.checked; try { localStorage.setItem('showText', showText ? '1' : '0'); } catch (e) {} };
+  $('#go').onclick = show;
+}
+
+function summary() {
+  clearInterval(timer);
+  const ok = res.filter(r => r && r.ok).length, n = Q.length;
+  $('#stage').innerHTML = `
+    <div class="hero" style="cursor:default">
+      <div class="meta"><span class="tag">Kết quả</span></div>
+      <h1 class="big">${ok}/${n}</h1>
+      <p style="margin:0;font-size:19px">Bạn trả lời đúng ${ok} trên ${n} câu ${ok === n ? '🎉' : ok >= n * 0.7 ? '👍' : '💪'}</p>
+    </div>
+    <div class="block"><ul class="rlist">${res.map((r, i) => `<li><span>${r.ok ? '✅' : '❌'}</span><span>Câu ${i + 1} · ${esc(r.label)}</span></li>`).join('')}</ul></div>
+    <button class="btn" id="again">Làm lại</button>
+    <a class="btn" style="margin-top:14px" href="practice.html?no=${NO}">Quay lại Practice</a>
+    <a class="btn" style="margin-top:14px" href="index.html?no=${NO}">Về trang idiom</a>`;
+  $('#again').onclick = () => { build(); show(); };
+  scrollTo(0, 0);
+}
+
+/* ---------- tải dữ liệu ---------- */
+(async function () {
+  try {
+    const raw = await (await fetch('data.json')).json();
+    const list = (Array.isArray(raw) ? raw.map((v, i) => v && { ...v, stt: v.stt ?? i })
+                                      : Object.entries(raw).map(([k, v]) => v && { ...v, stt: v.stt ?? k })).filter(Boolean);
+    list.forEach(v => { if (v.idiom && v.meaning_vi) MEANING[v.idiom.trim().toLowerCase()] = v.meaning_vi; });
+    const it = list.find(v => Number(v.stt) === NO);
+    P = it && it.practice;
+    if (!P || !P.exam || !P.exam.length) {
+      $('#stage').innerHTML = `<div class="empty">Idiom này chưa có bài tập.<br><br><a class="btn" href="index.html?no=${NO}">Quay lại</a></div>`;
+      return;
+    }
+    start();
+  } catch (e) {
+    $('#stage').innerHTML = '<div class="empty">Không tải được dữ liệu.</div>';
+  }
+})();
+</script>
+</body>
+</html>
