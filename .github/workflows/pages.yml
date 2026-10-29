@@ -31,7 +31,7 @@ jobs:
           FIREBASE_AUTH: ${{ secrets.FIREBASE_AUTH }}   # tuỳ chọn, chỉ cần nếu rules không cho đọc public
         run: |
           mkdir _site
-          cp index.html practice.html theme.css theme.js _site/
+          cp index.html practice.html theme.css theme.js sw.js manifest.webmanifest *.png _site/
           URL="${FIREBASE_URL%/}.json"
           if [ -n "$FIREBASE_AUTH" ]; then URL="$URL?auth=$FIREBASE_AUTH"; fi
           curl -fsS "$URL" -o _site/data.json
