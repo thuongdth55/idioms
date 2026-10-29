@@ -44,8 +44,9 @@ async function init() {
     return;
   }
 
-  const no = Number(new URLSearchParams(location.search).get('no'));
-  const idx = items.findIndex(i => i.stt === no);
+  // Không có ?no= → mở idiom có stt cao nhất (items đã sắp giảm dần)
+  const p = new URLSearchParams(location.search).get('no');
+  const idx = p === null ? (items.length ? 0 : -1) : items.findIndex(i => i.stt === Number(p));
   const it = items[idx];
   if (it) document.title = it.idiom + ' · Idioms';
 
