@@ -83,10 +83,10 @@ a{color:inherit}
 /* buttons & nav */
 .btn{display:block;width:100%;margin-top:34px;padding:16px;border:none;border-radius:18px;background:var(--btn);color:var(--btn-text);font:700 18px var(--font);text-align:center;text-decoration:none;cursor:pointer}
 .btn:hover{opacity:.92}
-.nav-control{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:8px 16px;border-radius:999px;background:var(--nav);border:1px solid var(--border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:15;box-shadow:var(--shadow)}
+.nav-control{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:260px;max-width:92vw;padding:8px 22px;border-radius:999px;background:var(--nav);border:1px solid var(--border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:15;box-shadow:var(--shadow)}
 .nav-btn{color:var(--gold);font-size:20px;text-decoration:none;padding:2px 8px;line-height:1}
 .nav-btn.off{opacity:.3;pointer-events:none}
-.pos{font-size:14px;color:var(--muted)}
+.pos{font-size:14px;color:var(--muted);white-space:nowrap}
 .empty{padding:40px 10px;text-align:center;color:var(--muted);line-height:1.8}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(max-width:700px){.hero{padding:24px 22px}.block{font-size:18px}.item .en{font-size:20px}.item .vi{font-size:18px}}
