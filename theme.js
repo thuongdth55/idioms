@@ -28,3 +28,9 @@ document.addEventListener('click', function (e) {
   var el = e.target.closest('[data-speak]');
   if (el) speak(el.dataset.speak);
 });
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
