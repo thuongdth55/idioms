@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idioms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Idioms</a>
+  <label class="switch" title="Đổi giao diện sáng/tối">
+    <input type="checkbox" id="themeSwitch" aria-label="Chế độ tối">
+    <span class="knob"></span>
+  </label>
+</header>
+
+<main class="wrap" id="app"><div class="empty">Đang tải dữ liệu...</div></main>
+
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nl = s => esc(s).replace(/\n/g, '<br>');
+const sp = t => `data-speak="${esc(t)}"`;
+const sec = (title, html) => html ? `<div class="sec">${title}</div>${html}` : '';
+
+let items = [];
+
+async function init() {
+  const app = document.getElementById('app');
+  try {
+    const r = await fetch('data.json');
+    if (!r.ok) throw new Error(r.status);
+    const raw = await r.json();
+    const entries = Array.isArray(raw) ? raw.map((v, i) => [i, v]) : Object.entries(raw || {});
+    items = entries
+      .filter(([, v]) => v && v.idiom)
+      .map(([k, v]) => ({ ...v, stt: Number(v.stt ?? k) }))
+      .sort((a, b) => b.stt - a.stt);               // stt giảm dần
+  } catch (e) {
+    app.innerHTML = '<div class="empty">Không tải được dữ liệu.<br>Hãy chạy lại workflow "Deploy to GitHub Pages".</div>';
+    return;
+  }
+
+  const no = Number(new URLSearchParams(location.search).get('no'));
+  const idx = items.findIndex(i => i.stt === no);
+  const it = items[idx];
+  if (it) document.title = it.idiom + ' · Idioms';
+
+  app.innerHTML = listHtml(idx) + (it ? cardHtml(it) + navHtml(idx) : '');
+  bindSearch();
+  if (it) speak(it.idiom);
+}
+
+function listHtml(idx) {
+  const home = idx < 0;
+  return `
+    <details class="list-panel" ${home ? 'open' : ''}>
+      <summary>☰ Danh sách idioms <span class="count">${items.length}</span></summary>
+      <input id="q" type="search" placeholder="Tìm idiom..." autocomplete="off">
+      <ul class="idiom-list ${home ? 'full' : ''}">
+        ${items.map((i, n) => `<li><a class="${n === idx ? 'cur' : ''}" href="?no=${i.stt}">${esc(i.idiom)}</a></li>`).join('')}
+      </ul>
+    </details>`;
+}
+
+function bindSearch() {
+  const q = document.getElementById('q');
+  q.addEventListener('input', () => {
+    const k = q.value.trim().toLowerCase();
+    document.querySelectorAll('.idiom-list li').forEach(li => {
+      li.style.display = li.textContent.toLowerCase().includes(k) ? '' : 'none';
+    });
+  });
+}
+
+const exItem = e => !e ? '' : `
+  <div class="item" ${sp(e.en)}>
+    <div class="en">${esc(e.en)}</div>
+    ${e.ipa_us ? `<div class="ipa-sub">${esc(e.ipa_us)}</div>` : ''}
+    <div class="vi">${esc(e.vn)}</div>
+  </div>`;
+
+function cardHtml(it) {
+  const a = it.analyzer || {};
+  const alts = (it.alternatives || '').split(',').map(s => s.trim()).filter(Boolean);
+  const kv = (label, v) => v ? `<div class="kv"><b>${label}</b><p>${nl(v)}</p></div>` : '';
+
+  const analyzer = [kv('Nghĩa đen', a.lit_mean), kv('Nghĩa bóng', a.metaphorical), kv('Vì sao có nghĩa này', a.motiv_why)].join('')
+    + (a.tok_list?.length ? `<div class="toks">${a.tok_list.map(t =>
+        `<button class="tok" ${sp(t.word)}><b>${esc(t.word)}</b><span>${esc(t.meaning)}</span></button>`).join('')}</div>` : '');
+
+  const notes = [
+    it.us_uk_freq ? `<div class="note"><b>Anh – Mỹ:</b> ${esc(it.us_uk_freq)}</div>` : '',
+    it.special_note ? `<div class="note"><b>Lưu ý:</b> ${esc(it.special_note)}</div>` : ''
+  ].join('');
+
+  return `
+    <div class="hero" ${sp(it.idiom)}>
+      <div class="meta">
+        <span class="tag">#${it.stt}</span>
+        ${it.formality_level ? `<span class="tag">${esc(it.formality_level)}</span>` : ''}
+        ${it.date ? `<span class="tag">${esc(it.date)}</span>` : ''}
+      </div>
+      <h1 class="big">${esc(it.idiom)}</h1>
+      ${it.ipa_us ? `<div class="ipa-row"><span class="tag">US</span><span class="ipa">${esc(it.ipa_us)}</span></div>` : ''}
+      ${it.ipa_uk ? `<div class="ipa-row"><span class="tag">UK</span><span class="ipa">${esc(it.ipa_uk)}</span></div>` : ''}
+    </div>
+
+    ${sec('📖 Ý nghĩa', it.meaning_vi ? `<div class="block lead">${nl(it.meaning_vi)}</div>` : '')}
+    ${sec('🔁 Cách nói khác', alts.length ? `<div class="chips">${alts.map(x => `<button class="chip" ${sp(x)}>${esc(x)}</button>`).join('')}</div>` : '')}
+    ${sec('🧩 Phân tích', analyzer ? `<div class="block">${analyzer}</div>` : '')}
+    ${sec('⚡ Ví dụ', (it.example || []).map(exItem).join(''))}
+    ${sec('🇺🇸 Idiom dùng ở Mỹ', (it.us_idiom || []).map(exItem).join(''))}
+    ${sec('📌 Cách dùng', (it.usageList || []).map(u =>
+        `<div class="block"><p class="usage-text">${esc(u.usage)}</p>${exItem(u.example)}</div>`).join(''))}
+    ${sec('📝 Ghi chú', notes)}
+
+    <a class="btn" href="practice.html?no=${it.stt}">Practice</a>`;
+}
+
+function navHtml(idx) {
+  const prev = items[idx - 1], next = items[idx + 1];
+  return `
+    <nav class="nav-control" aria-label="Chuyển idiom">
+      <a class="nav-btn ${prev ? '' : 'off'}" ${prev ? `href="?no=${prev.stt}"` : ''} aria-label="Idiom trước">←</a>
+      <span class="pos"><b>${idx + 1}</b> / ${items.length}</span>
+      <a class="nav-btn ${next ? '' : 'off'}" ${next ? `href="?no=${next.stt}"` : ''} aria-label="Idiom sau">→</a>
+    </nav>`;
+}
+
+init();
+</script>
+</body>
+</html>

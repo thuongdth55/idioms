@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice · Idioms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Idioms</a>
+  <label class="switch" title="Đổi giao diện sáng/tối">
+    <input type="checkbox" id="themeSwitch" aria-label="Chế độ tối">
+    <span class="knob"></span>
+  </label>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="meta"><span class="tag">Practice</span></div>
+    <h1 class="big" id="title">...</h1>
+  </div>
+
+  <!-- Nội dung bài tập sẽ được thêm vào đây -->
+  <div class="block" id="exercise">Bài tập cho idiom này sẽ được bổ sung.</div>
+
+  <a class="btn" id="back" href="index.html">Quay lại idiom</a>
+</main>
+
+<script>
+const no = Number(new URLSearchParams(location.search).get('no'));
+document.getElementById('back').href = 'index.html?no=' + no;
+
+fetch('data.json').then(r => r.json()).then(raw => {
+  const list = Array.isArray(raw) ? raw : Object.entries(raw).map(([k, v]) => v && { ...v, stt: v.stt ?? k });
+  const it = list.find((v, i) => v && Number(v.stt ?? i) === no);
+  window.currentIdiom = it || null;          // dùng cho phần bài tập sau này
+  document.getElementById('title').textContent = it ? it.idiom : 'Không tìm thấy idiom';
+}).catch(() => {
+  document.getElementById('title').textContent = 'Không tải được dữ liệu';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'     # tự cập nhật dữ liệu mỗi 6 giờ
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site (fetch data from Firebase)
+        env:
+          FIREBASE_URL: ${{ secrets.FIREBASE_URL }}     # vd: https://xxx.firebasedatabase.app/500_idioms
+          FIREBASE_AUTH: ${{ secrets.FIREBASE_AUTH }}   # tuỳ chọn, chỉ cần nếu rules không cho đọc public
+        run: |
+          mkdir _site
+          cp index.html practice.html theme.css theme.js _site/
+          URL="${FIREBASE_URL%/}.json"
+          if [ -n "$FIREBASE_AUTH" ]; then URL="$URL?auth=$FIREBASE_AUTH"; fi
+          curl -fsS "$URL" -o _site/data.json
+          if [ "$(head -c 4 _site/data.json)" = "null" ]; then echo "Dữ liệu rỗng"; exit 1; fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
