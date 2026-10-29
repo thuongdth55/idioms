@@ -1,6 +1,6 @@
 // Service worker: chạy offline. Online thì luôn lấy bản mới nhất, mất mạng thì dùng bản đã lưu.
 const CACHE = 'idioms-v1';
-const SHELL = ['./', 'index.html', 'practice.html', 'theme.css', 'theme.js',
+const SHELL = ['./', 'index.html', 'practice.html', 'exam.html', 'theme.css', 'theme.js',
                'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

@@ -27,26 +27,39 @@
 </header>
 
 <main class="wrap">
-  <div class="hero">
+  <div class="hero" style="cursor:default">
     <div class="meta"><span class="tag">Practice</span></div>
     <h1 class="big" id="title">...</h1>
   </div>
 
-  <!-- Nội dung bài tập sẽ được thêm vào đây -->
-  <div class="block" id="exercise">Bài tập cho idiom này sẽ được bổ sung.</div>
+  <div id="info"></div>
 
-  <a class="btn" id="back" href="index.html">Quay lại idiom</a>
+  <a class="btn" id="start" href="#" style="display:none">Làm bài tập</a>
+  <a class="btn" id="back" href="index.html" style="margin-top:14px">Quay lại idiom</a>
 </main>
 
 <script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const no = Number(new URLSearchParams(location.search).get('no'));
 document.getElementById('back').href = 'index.html?no=' + no;
 
 fetch('data.json').then(r => r.json()).then(raw => {
-  const list = Array.isArray(raw) ? raw : Object.entries(raw).map(([k, v]) => v && { ...v, stt: v.stt ?? k });
-  const it = list.find((v, i) => v && Number(v.stt ?? i) === no);
-  window.currentIdiom = it || null;          // dùng cho phần bài tập sau này
+  const list = (Array.isArray(raw) ? raw.map((v, i) => v && { ...v, stt: v.stt ?? i })
+                                    : Object.entries(raw).map(([k, v]) => v && { ...v, stt: v.stt ?? k })).filter(Boolean);
+  const it = list.find(v => Number(v.stt) === no);
   document.getElementById('title').textContent = it ? it.idiom : 'Không tìm thấy idiom';
+  const p = it && it.practice;
+  const info = document.getElementById('info');
+  if (!p || !p.exam || !p.exam.length) {
+    info.innerHTML = '<div class="block">Idiom này chưa có bài tập.</div>';
+    return;
+  }
+  const labels = { idiom_main: 'Idiom chính', idiom_1d: 'Ôn lại (1 ngày)', idiom_7d: 'Ôn lại (7 ngày)', idiom_21d: 'Ôn lại (21 ngày)', idiom_30d: 'Ôn lại (30 ngày)' };
+  info.innerHTML = '<div class="sec">📚 Các idiom trong bài</div>' + Object.keys(labels).filter(k => p[k])
+    .map(k => `<div class="block"><span class="tag">${labels[k]}</span><div style="margin-top:8px;font-weight:700;font-size:20px">${esc(p[k])}</div></div>`).join('');
+  const s = document.getElementById('start');
+  s.href = 'exam.html?no=' + no;
+  s.style.display = 'block';
 }).catch(() => {
   document.getElementById('title').textContent = 'Không tải được dữ liệu';
 });
