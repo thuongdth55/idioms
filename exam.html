@@ -169,7 +169,10 @@ function wireChoice(e, correct) {
     const ok = nrm(b.dataset.v) === nrm(correct);
     b.classList.add(ok ? 'ok' : 'bad');
     if (!ok) $$('.opt').forEach(x => { if (nrm(x.dataset.v) === nrm(correct)) x.classList.add('ok'); });
-    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(correct)}</b></p><p>${esc(e.explain)}</p>`);
+    finish(ok, e.type_desc, `
+    <p>Đáp án: <b>${esc(correct)}</b></p>
+    <p style="white-space: pre-line">${esc(e.explain)}</p>
+`);
   });
 }
 
@@ -219,7 +222,8 @@ function fixQ(e) {
       c.disabled = true;
     });
     $('#in').disabled = true; $('#sub').style.display = 'none';
-    finish(ok, e.type_desc, `<p>Từ sai: <b>${esc(e.answer.map(a => a.index_wrong).join(', '))}</b> → từ đúng: <b>${esc(e.answer.map(a => a.correct_word).join(', '))}</b></p><p>${esc(e.explain)}</p>`);
+    finish(ok, e.type_desc, `<p>Từ sai: <b>${esc(e.answer.map(a => a.index_wrong).join(', '))}</b> → từ đúng: <b>${esc(e.answer.map(a => a.correct_word).join(', '))}</b></p>
+    <p style="white-space: pre-line">${esc(e.explain)}</p>`);
   };
   $('#sub').onclick = go;
   $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
@@ -233,7 +237,7 @@ function originQ(e) {
   const go = () => {
     const ok = matchIdiom($('#in').value, e.answer);
     $('#in').disabled = true; $('#sub').style.display = 'none';
-    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(e.answer)}</b></p><p>${esc(e.explain)}</p>`);
+    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(e.answer)}</b></p><p style="white-space: pre-line">${esc(e.explain)}</p>`);
   };
   $('#sub').onclick = go;
   $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
