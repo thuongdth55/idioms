@@ -74,19 +74,11 @@ let showText = false;
 try { showText = localStorage.getItem('showText') === '1'; } catch (e) {}
 
 /* ---------- âm thanh ---------- */
-function say(parts) {
-  if (!window.speechSynthesis) return;
-  speechSynthesis.cancel();
-  setTimeout(() => parts.forEach(t => {
-    const u = new SpeechSynthesisUtterance(String(t).replace(/[()]/g, '').replace(/\//g, ','));
-    u.lang = 'en-US'; u.rate = 0.9;
-    speechSynthesis.speak(u);
-  }), 60);
-}
-// bỏ nhãn người nói (A:, Mom:), lời chú trong ngoặc, đổi chỗ trống thành "blank"
+// say() nằm trong theme.js
+// bỏ nhãn người nói (A:, Mom:) và lời chú trong ngoặc; giữ ____ để theme.js chèn khoảng lặng
 const clean = s => String(s).split('\n')
   .map(l => l.replace(/^\s*(?:[A-Z][\w']*\s?){1,3}:\s*/, ''))
-  .join('. ').replace(/\([^)]*\)/g, ' ').replace(/_{2,}/g, ' blank ')
+  .join('. ').replace(/\([^)]*\)/g, ' ')
   .replace(/(^|[\s.])'+/g, '$1').replace(/'+(?=[\s.,!?]|$)/g, '').replace(/["“”]/g, '');
 
 /* ---------- so khớp ---------- */
@@ -128,7 +120,7 @@ function finish(ok, label, html) {
 
 function show() {
   clearInterval(timer);
-  window.speechSynthesis && speechSynthesis.cancel();
+  window.stopSpeech && stopSpeech();
   const q = Q[cur];
   if (q.k === 'dict') dictQ(q);
   else if (q.k === 'match') matchQ(q);
