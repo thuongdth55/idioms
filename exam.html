@@ -39,6 +39,7 @@
 .fb{margin-top:18px;padding:16px 18px;border-radius:18px;background:var(--note);line-height:1.8}
 .fb.ok{border-left:5px solid #4a9a4a}.fb.bad{border-left:5px solid #c0504d}
 .fb p{margin:6px 0 0}
+.fb a{color:var(--gold);font-weight:700}
 .ch-ok{color:#2e8b2e;font-weight:700}.ch-bad{color:#c0392b;font-weight:700;text-decoration:underline}
 .mstat{display:flex;justify-content:space-between;margin-bottom:12px;font-size:18px;font-weight:700}
 .match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -73,6 +74,7 @@ const NO = Number(PARAMS.get('no'));
 const IDS = PARAMS.get('ids');            // có ids => chế độ "Thử tài idioms"
 const CHALLENGE = IDS !== null;
 let SEL = [], SKIP = 0;
+const STT = {};                          // idiom (chữ thường) -> số stt
 let P = null, MEANING = {}, Q = [], cur = 0, res = [], timer = null;
 let showText = false;
 try { showText = localStorage.getItem('showText') === '1'; } catch (e) {}
@@ -124,10 +126,18 @@ const head = () => `<div class="qhead"><span>Câu ${cur + 1}/${Q.length}</span>
 const frame = (title, inner) => `${head()}<div class="q ${showText ? 'txt' : ''}" id="q"><span class="tag">${esc(title)}</span>${inner}<div id="fb"></div></div>`;
 const eyeBtn = '<button class="eye" id="eye">👁 Xem nội dung</button>';
 
+// Khi trả lời sai: thêm dòng "Idiom số N" + link (mở tab mới để không mất bài đang làm)
+const idiomLink = t => {
+  const n = STT[String(t || '').trim().toLowerCase()];
+  return n === undefined ? '' : `Idiom số <b>${n}</b>: <a href="index.html?no=${n}" target="_blank" rel="noopener">${esc(t)}</a>`;
+};
+const targetIdiom = q => q.k === 'dict' ? q.text : q.k === 'exam' ? (CHALLENGE ? q.ans : P[q.e.target_idiom_ref]) : null;
+const linkLine = q => { const l = idiomLink(targetIdiom(q)); return l ? `<p>${l}</p>` : ''; };
+
 function finish(ok, label, html) {
   res[cur] = { ok, label: (CHALLENGE && Q[cur].ans) ? label + ' · ' + Q[cur].ans : label };
   const last = cur === Q.length - 1;
-  $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? '✓ Chính xác' : '✗ Chưa đúng'}</b>${html}</div>
+  $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? '✓ Chính xác' : '✗ Chưa đúng'}</b>${html}${ok ? '' : linkLine(Q[cur])}</div>
     <button class="btn" id="next">${last ? 'Xem kết quả' : 'Câu tiếp →'}</button>`;
   $('#q').classList.add('txt');
   $('#next').onclick = () => { cur++; cur < Q.length ? show() : summary(); };
@@ -268,7 +278,7 @@ function matchQ(q) {
     if (over) return; over = true; clearInterval(timer);
     const miss = q.pairs.filter(p => !$(`.mc[data-s="L"][data-id="${p.id}"]`).classList.contains('done'));
     finish(ok, 'Nối thẻ', ok ? `<p>Bạn nối đủ ${total} cặp.</p>`
-      : `<p>${left <= 0 ? 'Hết giờ! ' : ''}Còn thiếu:</p>${miss.map(p => `<p><b>${esc(p.en)}</b> — ${esc(p.vi)}</p>`).join('')}`);
+      : `<p>${left <= 0 ? 'Hết giờ! ' : ''}Còn thiếu:</p>${miss.map(p => `<p><b>${esc(p.en)}</b> — ${esc(p.vi)}${idiomLink(p.en) ? '<br>' + idiomLink(p.en) : ''}</p>`).join('')}`);
   };
   $('#board').onclick = ev => {
     const c = ev.target.closest('.mc');
@@ -377,6 +387,7 @@ function summary() {
     const list = (Array.isArray(raw) ? raw.map((v, i) => v && { ...v, stt: v.stt ?? i })
                                       : Object.entries(raw).map(([k, v]) => v && { ...v, stt: v.stt ?? k })).filter(Boolean);
     list.forEach(v => { if (v.idiom && v.meaning_vi) MEANING[v.idiom.trim().toLowerCase()] = v.meaning_vi; });
+    list.forEach(v => { if (v.idiom) STT[v.idiom.trim().toLowerCase()] = Number(v.stt); });
     if (CHALLENGE) {
       const want = new Set(IDS === 'all' ? list.map(v => Number(v.stt)) : parseNos(IDS).nums);
       SEL = list.filter(v => v.idiom && want.has(Number(v.stt))).sort((a, b) => Number(b.stt) - Number(a.stt));
