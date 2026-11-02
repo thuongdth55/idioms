@@ -86,12 +86,15 @@ const clean = s => String(s).split('\n')
   .replace(/(^|[\s.])'+/g, '$1').replace(/'+(?=[\s.,!?]|$)/g, '').replace(/["“”]/g, '');
 
 /* ---------- so khớp ---------- */
-function variants(s) {                                   // "a / b", "x (in one's head)"
-  const out = new Set();
-  String(s).split('/').forEach(p => { out.add(nrm(p.replace(/\([^)]*\)/g, ' '))); out.add(nrm(p.replace(/[()]/g, ' '))); });
+// So khớp ngầm: bỏ mọi ký tự ngoài a-z, 0-9 (dấu cách, "/", ngoặc, dấu câu...) ở cả câu gõ và đáp án
+const keyOf = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function answerKeys(s) {                                 // đáp án đầy đủ, hoặc từng vế "a / b", hoặc bỏ phần trong ngoặc
+  const noParen = x => String(x).replace(/\([^)]*\)/g, '');
+  const out = new Set([keyOf(s), keyOf(noParen(s))]);
+  String(s).split('/').forEach(p => { out.add(keyOf(p)); out.add(keyOf(noParen(p))); });
   return [...out].filter(Boolean);
 }
-const matchIdiom = (inp, ans) => variants(ans).includes(nrm(inp));
+const matchIdiom = (inp, ans) => { const k = keyOf(inp); return !!k && answerKeys(ans).includes(k); };
 function lcsMask(a, b) {                                 // ký tự nào của a khớp với b
   const n = a.length, m = b.length, d = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
   for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
@@ -103,6 +106,15 @@ function lcsMask(a, b) {                                 // ký tự nào của 
     else if (d[i + 1][j] >= d[i][j + 1]) i++; else j++;
   }
   return mask;
+}
+// Hiện đủ ký tự người dùng gõ; chữ/số đúng tô xanh, sai tô đỏ, ký tự khác ("/", dấu cách...) giữ nguyên
+function diffHtml(inp, ans) {
+  const u = keyOf(inp);
+  let bm = [], bc = -1;
+  answerKeys(ans).forEach(v => { const m = lcsMask(u, v), c = m.filter(Boolean).length; if (c > bc) { bc = c; bm = m; } });
+  let k = 0;
+  return [...String(inp)].map(ch => /[a-z0-9]/i.test(ch)
+    ? `<span class="${bm[k++] ? 'ch-ok' : 'ch-bad'}">${esc(ch)}</span>` : esc(ch)).join('');
 }
 
 /* ---------- khung câu hỏi ---------- */
@@ -148,10 +160,8 @@ function dictQ(q) {
   const play = () => say([q.text]);
   $('#pl').onclick = play; play();
   const go = () => {
-    const inp = $('#in').value, ok = matchIdiom(inp, q.text), u = nrm(inp);
-    let bm = [], bc = -1;
-    variants(q.text).forEach(v => { const m = lcsMask(u, v), c = m.filter(Boolean).length; if (c > bc) { bc = c; bm = m; } });
-    const colored = [...u].map((c, i) => `<span class="${bm[i] ? 'ch-ok' : 'ch-bad'}">${esc(c)}</span>`).join('') || '<i>(trống)</i>';
+    const inp = $('#in').value, ok = matchIdiom(inp, q.text);
+    const colored = inp.trim() ? diffHtml(inp, q.text) : '<i>(trống)</i>';
     $('#in').disabled = true; $('#sub').style.display = 'none';
     finish(ok, 'Nghe và gõ lại', `<p>Bạn gõ: ${colored}</p><p>Đáp án: <b>${esc(q.text)}</b></p>`);
   };
