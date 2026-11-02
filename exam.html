@@ -129,7 +129,7 @@ const eyeBtn = '<button class="eye" id="eye">👁 Xem nội dung</button>';
 // Khi trả lời sai: thêm dòng "Idiom số N" + link (mở tab mới để không mất bài đang làm)
 const idiomLink = t => {
   const n = STT[String(t || '').trim().toLowerCase()];
-  return n === undefined ? '' : `Idiom số <b>${n}</b>: <a href="index.html?no=${n}" target="_blank" rel="noopener">${esc(t)}</a>`;
+  return n === undefined ? '' : `<a href="index.html?no=${n}" target="_blank" rel="noopener">Idiom số ${n}</a>`;
 };
 const targetIdiom = q => q.k === 'dict' ? q.text : q.k === 'exam' ? (CHALLENGE ? q.ans : P[q.e.target_idiom_ref]) : null;
 const linkLine = q => { const l = idiomLink(targetIdiom(q)); return l ? `<p>${l}</p>` : ''; };
