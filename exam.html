@@ -68,7 +68,11 @@ const nrm = s => String(s ?? '').toLowerCase().replace(/[’‘]/g, "'").replace
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 const SLOTS = ['idiom_main', 'idiom_1d', 'idiom_7d', 'idiom_21d', 'idiom_30d'];
-const NO = Number(new URLSearchParams(location.search).get('no'));
+const PARAMS = new URLSearchParams(location.search);
+const NO = Number(PARAMS.get('no'));
+const IDS = PARAMS.get('ids');            // có ids => chế độ "Thử tài idioms"
+const CHALLENGE = IDS !== null;
+let SEL = [], SKIP = 0;
 let P = null, MEANING = {}, Q = [], cur = 0, res = [], timer = null;
 let showText = false;
 try { showText = localStorage.getItem('showText') === '1'; } catch (e) {}
@@ -109,7 +113,7 @@ const frame = (title, inner) => `${head()}<div class="q ${showText ? 'txt' : ''}
 const eyeBtn = '<button class="eye" id="eye">👁 Xem nội dung</button>';
 
 function finish(ok, label, html) {
-  res[cur] = { ok, label };
+  res[cur] = { ok, label: (CHALLENGE && Q[cur].ans) ? label + ' · ' + Q[cur].ans : label };
   const last = cur === Q.length - 1;
   $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? '✓ Chính xác' : '✗ Chưa đúng'}</b>${html}</div>
     <button class="btn" id="next">${last ? 'Xem kết quả' : 'Câu tiếp →'}</button>`;
@@ -169,10 +173,7 @@ function wireChoice(e, correct) {
     const ok = nrm(b.dataset.v) === nrm(correct);
     b.classList.add(ok ? 'ok' : 'bad');
     if (!ok) $$('.opt').forEach(x => { if (nrm(x.dataset.v) === nrm(correct)) x.classList.add('ok'); });
-    finish(ok, e.type_desc, `
-    <p>Đáp án: <b>${esc(correct)}</b></p>
-    <p style="white-space: pre-line">${esc(e.explain)}</p>
-`);
+    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(correct)}</b></p><p>${esc(e.explain)}</p>`);
   });
 }
 
@@ -222,8 +223,7 @@ function fixQ(e) {
       c.disabled = true;
     });
     $('#in').disabled = true; $('#sub').style.display = 'none';
-    finish(ok, e.type_desc, `<p>Từ sai: <b>${esc(e.answer.map(a => a.index_wrong).join(', '))}</b> → từ đúng: <b>${esc(e.answer.map(a => a.correct_word).join(', '))}</b></p>
-    <p style="white-space: pre-line">${esc(e.explain)}</p>`);
+    finish(ok, e.type_desc, `<p>Từ sai: <b>${esc(e.answer.map(a => a.index_wrong).join(', '))}</b> → từ đúng: <b>${esc(e.answer.map(a => a.correct_word).join(', '))}</b></p><p>${esc(e.explain)}</p>`);
   };
   $('#sub').onclick = go;
   $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
@@ -237,7 +237,7 @@ function originQ(e) {
   const go = () => {
     const ok = matchIdiom($('#in').value, e.answer);
     $('#in').disabled = true; $('#sub').style.display = 'none';
-    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(e.answer)}</b></p><p style="white-space: pre-line">${esc(e.explain)}</p>`);
+    finish(ok, e.type_desc, `<p>Đáp án: <b>${esc(e.answer)}</b></p><p>${esc(e.explain)}</p>`);
   };
   $('#sub').onclick = go;
   $('#in').onkeydown = ev => { if (ev.key === 'Enter') go(); };
@@ -283,7 +283,34 @@ function matchQ(q) {
 }
 
 /* ---------- bắt đầu & kết quả ---------- */
+// không để 2 câu cùng đáp án đứng cạnh nhau
+function spread(list) {
+  for (let t = 0; t < 300; t++) {
+    const pool = shuffle(list.slice()), out = [];
+    while (pool.length) {
+      const ok = pool.map((q, i) => i).filter(i => !out.length || pool[i].ans !== out[out.length - 1].ans);
+      if (!ok.length) break;
+      out.push(pool.splice(ok[Math.floor(Math.random() * ok.length)], 1)[0]);
+    }
+    if (!pool.length) return out;
+  }
+  return shuffle(list.slice());
+}
+
+function buildChallenge() {
+  const list = []; SKIP = 0;
+  SEL.forEach(it => {
+    list.push({ k: 'dict', text: it.idiom, ans: it.idiom });
+    const ex = (it.practice && it.practice.exam) || [];
+    const e = ex.find(x => Number(x.type) === 4 && x.target_idiom_ref === 'idiom_main')
+           || ex.find(x => Number(x.type) === 4 && matchIdiom(it.idiom, x.answer));
+    if (e) list.push({ k: 'exam', e, ans: it.idiom }); else SKIP++;
+  });
+  return spread(list);
+}
+
 function build() {
+  if (CHALLENGE) { Q = buildChallenge(); cur = 0; res = []; return; }
   const exam = shuffle((P.exam || []).slice()).slice(0, 10);
   Q = [{ k: 'dict', text: P.idiom_main }, ...exam.map(e => ({ k: 'exam', e }))];
   const pairs = SLOTS.map(id => ({ id, en: P[id], vi: MEANING[String(P[id] || '').trim().toLowerCase()] })).filter(p => p.en && p.vi);
@@ -293,11 +320,17 @@ function build() {
 
 function start() {
   build();
+  const nExam = Q.filter(q => q.k === 'exam').length;
+  const title = CHALLENGE ? 'Thử tài idioms' : esc(P.idiom_main);
+  const tag = CHALLENGE ? `${SEL.length} idiom` : `#${NO}`;
+  const desc = CHALLENGE
+    ? `${Q.length} câu từ ${SEL.length} idiom: nghe rồi gõ lại, và đọc phần nguồn gốc rồi gõ thành ngữ. Hai câu cùng đáp án không đứng cạnh nhau.${SKIP ? `<br>(${SKIP} idiom chưa có câu nguồn gốc nên chỉ có câu nghe.)` : ''}`
+    : `${Q.length} câu: nghe và gõ lại, ${nExam} câu trong bộ đề${Q.some(q => q.k === 'match') ? ', và 1 câu nối thẻ có đếm ngược' : ''}.`;
   $('#stage').innerHTML = `
     <div class="hero" style="cursor:default">
-      <div class="meta"><span class="tag">Bài tập</span><span class="tag">#${NO}</span></div>
-      <h1 class="big">${esc(P.idiom_main)}</h1>
-      <p style="line-height:1.8">${Q.length} câu: nghe và gõ lại, ${Q.filter(q => q.k === 'exam').length} câu trong bộ đề${Q.some(q => q.k === 'match') ? ', và 1 câu nối thẻ có đếm ngược' : ''}.<br>
+      <div class="meta"><span class="tag">Bài tập</span><span class="tag">${tag}</span></div>
+      <h1 class="big">${title}</h1>
+      <p style="line-height:1.8">${desc}<br>
       Câu hỏi sẽ tự phát âm thanh; mặc định nội dung được ẩn để bạn luyện nghe.</p>
       <label class="sw"><input type="checkbox" id="st0" ${showText ? 'checked' : ''}> Hiện text của câu hỏi</label>
     </div>
@@ -305,6 +338,11 @@ function start() {
   $('#st0').onchange = ev => { showText = ev.target.checked; try { localStorage.setItem('showText', showText ? '1' : '0'); } catch (e) {} };
   $('#go').onclick = show;
 }
+
+const backLinks = () => CHALLENGE
+  ? '<a class="btn" style="margin-top:14px" href="index.html">Về trang chính</a>'
+  : `<a class="btn" style="margin-top:14px" href="practice.html?no=${NO}">Quay lại Practice</a>
+     <a class="btn" style="margin-top:14px" href="index.html?no=${NO}">Về trang idiom</a>`;
 
 function summary() {
   clearInterval(timer);
@@ -317,8 +355,7 @@ function summary() {
     </div>
     <div class="block"><ul class="rlist">${res.map((r, i) => `<li><span>${r.ok ? '✅' : '❌'}</span><span>Câu ${i + 1} · ${esc(r.label)}</span></li>`).join('')}</ul></div>
     <button class="btn" id="again">Làm lại</button>
-    <a class="btn" style="margin-top:14px" href="practice.html?no=${NO}">Quay lại Practice</a>
-    <a class="btn" style="margin-top:14px" href="index.html?no=${NO}">Về trang idiom</a>`;
+    ${backLinks()}`;
   $('#again').onclick = () => { build(); show(); };
   scrollTo(0, 0);
 }
@@ -330,6 +367,12 @@ function summary() {
     const list = (Array.isArray(raw) ? raw.map((v, i) => v && { ...v, stt: v.stt ?? i })
                                       : Object.entries(raw).map(([k, v]) => v && { ...v, stt: v.stt ?? k })).filter(Boolean);
     list.forEach(v => { if (v.idiom && v.meaning_vi) MEANING[v.idiom.trim().toLowerCase()] = v.meaning_vi; });
+    if (CHALLENGE) {
+      const want = new Set(IDS === 'all' ? list.map(v => Number(v.stt)) : parseNos(IDS).nums);
+      SEL = list.filter(v => v.idiom && want.has(Number(v.stt))).sort((a, b) => Number(b.stt) - Number(a.stt));
+      if (!SEL.length) { $('#stage').innerHTML = '<div class="empty">Không có idiom nào được chọn.<br><br><a class="btn" href="index.html">Quay lại</a></div>'; return; }
+      start(); return;
+    }
     const it = list.find(v => Number(v.stt) === NO);
     P = it && it.practice;
     if (!P || !P.exam || !P.exam.length) {

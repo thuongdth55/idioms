@@ -36,13 +36,25 @@ a{color:inherit}
 .wrap{max-width:900px;margin:auto;padding:22px 18px 140px;animation:fadeIn .28s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
+[hidden]{display:none!important}
+.toprow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text);font:600 16px var(--font);cursor:pointer}
+.pill.active{border-color:var(--gold);color:var(--gold)}
+.cpanel{margin-bottom:22px}
+.seg{display:flex;gap:10px;margin-bottom:12px}
+.seg .pill{flex:1;justify-content:center}
+.cin{display:block;width:100%;padding:12px 16px;border-radius:16px;border:1px solid var(--border);background:var(--bg-solid);color:var(--text);font:17px var(--font);outline:none}
+.cin:focus{border-color:var(--gold)}
+.chint{margin:10px 0 0;font-size:15px;color:var(--muted);line-height:1.6}
+.cpanel .btn{margin-top:16px}
+
 /* idiom list */
 .list-panel{margin-bottom:22px}
 .list-panel summary{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;border:1px solid var(--border);background:var(--card);font-size:16px;font-weight:600;cursor:pointer;list-style:none}
 .list-panel summary::-webkit-details-marker{display:none}
 .count{font-size:13px;padding:2px 10px;border-radius:999px;background:var(--tag);color:var(--tag-text)}
-#q{display:block;width:100%;margin:14px 0 10px;padding:12px 16px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text);font:16px var(--font);outline:none}
-#q:focus{border-color:var(--gold)}
+#search{display:block;width:100%;margin:14px 0 10px;padding:12px 16px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text);font:16px var(--font);outline:none}
+#search:focus{border-color:var(--gold)}
 .idiom-list{list-style:none;margin:0;padding:0;max-height:55vh;overflow:auto}
 .idiom-list.full{max-height:none}
 .idiom-list a{display:block;padding:13px 18px;margin-bottom:8px;border-radius:14px;background:var(--card);border:1px solid var(--border);font-weight:600;font-size:18px;text-decoration:none;transition:.2s}

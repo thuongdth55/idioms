@@ -106,6 +106,21 @@ var PART_PAUSE = 500;       // ms nghỉ giữa các đoạn truyền vào say([
   };
 })();
 
+// "1, 3-5, 8" -> {nums:[1,3,4,5,8], bad:[token không hợp lệ]}
+function parseNos(str) {
+  var nums = [], bad = [], seen = {};
+  String(str || '').replace(/\s*-\s*/g, '-').split(/[,;\s]+/).forEach(function (t) {
+    if (!t) return;
+    var m = t.match(/^(\d+)(?:-(\d+))?$/);
+    if (!m) { bad.push(t); return; }
+    var a = +m[1], b = m[2] === undefined ? a : +m[2];
+    if (a > b) { var x = a; a = b; b = x; }
+    if (b - a > 5000) { bad.push(t); return; }
+    for (var n = a; n <= b; n++) if (!seen[n]) { seen[n] = 1; nums.push(n); }
+  });
+  return { nums: nums, bad: bad };
+}
+
 function speak(text) { if (text) say([text]); }
 
 document.addEventListener('click', function (e) {
