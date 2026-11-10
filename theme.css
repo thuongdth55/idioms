@@ -81,11 +81,11 @@ a{color:inherit}
 .kv+.kv{margin-top:14px}
 .kv b{display:block;color:var(--gold);font-size:15px;margin-bottom:2px}
 .kv p{margin:0}
-.kv.hl{margin:18px 0;padding:16px 20px;border-radius:20px;border:1px solid var(--glass-border);
+.kv.hl{margin:16px 0}
+.kv.hl b{font-size:16px;margin-bottom:8px}
+.kv.hl p{padding:16px 20px;border-radius:20px;border:1px solid var(--glass-border);
   background:var(--glass-bg);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);
-  box-shadow:var(--glass-shadow)}
-.kv.hl b{font-size:16px}
-.kv.hl p{font-size:22px;font-weight:700;line-height:1.6;color:var(--text)}
+  box-shadow:var(--glass-shadow);font-size:22px;font-weight:400;line-height:1.6;color:var(--text)}
 .note{background:var(--note);border-left:5px solid var(--gold);border-radius:22px;padding:16px 18px;line-height:1.8;font-size:17px;margin-bottom:12px}
 .note b{color:var(--gold)}
 .chips{display:flex;flex-wrap:wrap;gap:10px}
@@ -115,3 +115,16 @@ a{color:inherit}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(max-width:700px){.hero{padding:24px 22px}.block{font-size:18px}.item .en{font-size:20px}.item .vi{font-size:18px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Dark mode: chữ vàng -> vàng chuyển màu giống hệt tiêu đề idiom (var(--title)) */
+[data-theme=dark] .brand,
+[data-theme=dark] .sec,
+[data-theme=dark] .kv b,
+[data-theme=dark] .note b,
+[data-theme=dark] .nav-btn,
+[data-theme=dark] .fb a,
+[data-theme=dark] .pill.active .pt,
+[data-theme=dark] .idiom-list a.cur span{
+  background:var(--title);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+[data-theme=dark] .sec,[data-theme=dark] .kv b{width:fit-content}

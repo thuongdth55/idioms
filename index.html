@@ -70,19 +70,19 @@ function listHtml(idx) {
   const home = idx < 0;
   return `
     <div class="toprow">
-      <button class="pill ${home ? 'active' : ''}" id="listBtn">☰ Danh sách idioms <span class="count">${items.length}</span></button>
-      <button class="pill" id="chBtn">🏆 Thử tài idioms</button>
+      <button class="pill ${home ? 'active' : ''}" id="listBtn"><span class="pt">☰ Danh sách idioms</span> <span class="count">${items.length}</span></button>
+      <button class="pill" id="chBtn"><span class="pt">🏆 Thử tài idioms</span></button>
     </div>
     <div id="listPanel" class="list-panel" ${home ? '' : 'hidden'}>
       <input id="search" type="search" placeholder="Tìm idiom..." autocomplete="off">
       <ul class="idiom-list ${home ? 'full' : ''}">
-        ${items.map((i, n) => `<li><a class="${n === idx ? 'cur' : ''}" href="?no=${i.stt}">${esc(i.idiom)}</a></li>`).join('')}
+        ${items.map((i, n) => `<li><a class="${n === idx ? 'cur' : ''}" href="?no=${i.stt}"><span>${esc(i.idiom)}</span></a></li>`).join('')}
       </ul>
     </div>
     <div id="chPanel" class="block cpanel" hidden>
       <div class="seg">
-        <button class="pill active" data-m="all">All</button>
-        <button class="pill" data-m="custom">Custom</button>
+        <button class="pill active" data-m="all"><span class="pt">All</span></button>
+        <button class="pill" data-m="custom"><span class="pt">Custom</span></button>
       </div>
       <input id="cin" class="cin" placeholder="Nhập stt, ví dụ: 1, 3-5, 8" autocomplete="off" inputmode="text" hidden>
       <p class="chint" id="chint"></p>
