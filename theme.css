@@ -15,7 +15,7 @@
 [data-theme=dark]{
   --bg:radial-gradient(circle at top left,#1e293b,#0f172a 60%);--bg-solid:#0f172a;
   --card:rgba(255,255,255,.05);--border:rgba(255,255,255,.08);--text:#f1f5f9;--muted:#cbd5e1;--gold:#fbbf24;--hover:rgba(255,255,255,.09);
-  --gold-text:#f97f22;
+  --gold-text:#e6c982;
   --font:'Be Vietnam Pro',system-ui,sans-serif;
   --hero:linear-gradient(135deg,#334155,#111827);
   --title:linear-gradient(90deg,#fde68a,#f97316);
