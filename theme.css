@@ -75,20 +75,20 @@ a{color:inherit}
 .ipa-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
 .ipa{color:var(--ipa);font-size:18px;font-style:italic}
 
-/* sections & cards (Đã thêm text-align: justify cho các khối nội dung text) */
+/* sections & cards */
 .sec{display:flex;align-items:center;gap:10px;color:var(--gold-text);font-weight:700;font-size:20px;margin:28px 0 12px}
 .block,.item{background:var(--card);border:1px solid var(--border);border-radius:22px}
-.block{padding:18px 20px;line-height:1.8;font-size:19px;margin-bottom:12px;text-align:justify;text-justify:inter-word}
+.block{padding:18px 20px;line-height:1.8;font-size:19px;margin-bottom:12px}
 .block.lead{font-size:21px}
 .kv+.kv{margin-top:14px}
 .kv b{display:block;color:var(--gold-text);font-size:15px;margin-bottom:2px}
-.kv p{margin:0;text-align:justify;text-justify:inter-word}
+.kv p{margin:0}
 .kv.hl{margin:16px 0}
 .kv.hl b{margin-bottom:8px}
 .kv.hl p{width:fit-content;max-width:100%;padding:14px 18px;border-radius:18px;border:1px solid var(--glass-border);
   background:var(--glass-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   box-shadow:var(--glass-shadow)}
-.note{background:var(--note);border-left:5px solid var(--gold);border-radius:22px;padding:16px 18px;line-height:1.8;font-size:17px;margin-bottom:12px;text-align:justify;text-justify:inter-word}
+.note{background:var(--note);border-left:5px solid var(--gold);border-radius:22px;padding:16px 18px;line-height:1.8;font-size:17px;margin-bottom:12px}
 .note b{color:var(--gold-text)}
 .chips{display:flex;flex-wrap:wrap;gap:10px}
 .chip,.tok{background:var(--tag);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:10px 16px;font:600 17px var(--font);cursor:pointer}
@@ -99,9 +99,9 @@ a{color:inherit}
 .item:hover{transform:translateY(var(--lift));background:var(--hover)}
 .item .en{font-weight:700;font-size:21px;line-height:1.6;margin-bottom:6px}
 .item .ipa-sub{color:var(--ipa-sub);font-style:italic;font-size:16px;margin-bottom:8px}
-.item .vi{font-size:19px;line-height:1.8;text-align:justify;text-justify:inter-word}
+.item .vi{font-size:19px;line-height:1.8}
 .block .item{margin:0}
-.usage-text{margin:0 0 12px;line-height:1.7;text-align:justify;text-justify:inter-word}
+.usage-text{margin:0 0 12px;line-height:1.7}
 
 .yt{display:inline-flex;margin-left:8px;line-height:0;transition:transform .2s}
 .yt:hover{transform:scale(1.08)}
