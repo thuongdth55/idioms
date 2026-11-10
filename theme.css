@@ -77,11 +77,14 @@ a{color:inherit}
 .kv+.kv{margin-top:14px}
 .kv b{display:block;color:var(--gold);font-size:15px;margin-bottom:2px}
 .kv p{margin:0}
+.kv.hl{margin:16px 0;padding:14px 18px;background:var(--note);border-left:5px solid var(--gold);border-radius:16px}
+.kv.hl b{font-size:16px}
+.kv.hl p{font-size:22px;font-weight:700;line-height:1.6;color:var(--text)}
 .note{background:var(--note);border-left:5px solid var(--gold);border-radius:22px;padding:16px 18px;line-height:1.8;font-size:17px;margin-bottom:12px}
 .note b{color:var(--gold)}
 .chips{display:flex;flex-wrap:wrap;gap:10px}
 .chip,.tok{background:var(--tag);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:10px 16px;font:600 17px var(--font);cursor:pointer}
-.toks{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.toks{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 .tok{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
 .tok span{font-weight:400;font-size:14px;color:var(--muted)}
 .item{padding:18px;margin-bottom:14px;cursor:pointer;transition:.22s}
