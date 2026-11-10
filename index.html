@@ -159,11 +159,16 @@ function ytHtml(it) {
 function cardHtml(it) {
   const a = it.analyzer || {};
   const alts = (it.alternatives || '').split(',').map(s => s.trim()).filter(Boolean);
-  const kv = (label, v) => v ? `<div class="kv"><b>${label}</b><p>${nl(v)}</p></div>` : '';
+  const kv = (label, v, cls = '') => v ? `<div class="kv ${cls}"><b>${label}</b><p>${nl(v)}</p></div>` : '';
 
-  const analyzer = [kv('Nghĩa đen', a.lit_mean), kv('Nghĩa bóng', a.metaphorical), kv('Vì sao có nghĩa này', a.motiv_why)].join('')
-    + (a.tok_list?.length ? `<div class="toks">${a.tok_list.map(t =>
-        `<button class="tok" ${sp(t.word)}><b>${esc(t.word)}</b><span>${esc(t.meaning)}</span></button>`).join('')}</div>` : '');
+  // Thứ tự: tok_list → lit_mean → metaphorical → meaning_vi (nổi bật) → motiv_why
+  const analyzer =
+    (a.tok_list?.length ? `<div class="toks">${a.tok_list.map(t =>
+        `<button class="tok" ${sp(t.word)}><b>${esc(t.word)}</b><span>${esc(t.meaning)}</span></button>`).join('')}</div>` : '')
+    + kv('Nghĩa đen', a.lit_mean)
+    + kv('Nghĩa bóng', a.metaphorical)
+    + kv('Ý nghĩa', it.meaning_vi, 'hl')
+    + kv('Vì sao có nghĩa này', a.motiv_why);
 
   const notes = [
     it.us_uk_freq ? `<div class="note"><b>Anh – Mỹ:</b> ${esc(it.us_uk_freq)}</div>` : '',
@@ -182,14 +187,13 @@ function cardHtml(it) {
       ${it.ipa_uk ? `<div class="ipa-row"><span class="tag">UK</span><span class="ipa">${esc(it.ipa_uk)}</span></div>` : ''}
     </div>
 
-    ${sec('📖 Ý nghĩa', it.meaning_vi ? `<div class="block lead">${nl(it.meaning_vi)}</div>` : '')}
-    ${sec('🔁 Cách nói khác', alts.length ? `<div class="chips">${alts.map(x => `<button class="chip" ${sp(x)}>${esc(x)}</button>`).join('')}</div>` : '')}
     ${sec('🧩 Phân tích', analyzer ? `<div class="block">${analyzer}</div>` : '')}
-    ${sec('⚡ Ví dụ' + ytHtml(it), (it.example || []).map(exItem).join(''))}
     ${sec('🇺🇸 Idiom dùng ở Mỹ', (it.us_idiom || []).map(exItem).join(''))}
     ${sec('📌 Cách dùng', (it.usageList || []).map(u =>
         `<div class="block"><p class="usage-text">${esc(u.usage)}</p>${exItem(u.example)}</div>`).join(''))}
     ${sec('📝 Ghi chú', notes)}
+    ${sec('🔁 Cách nói khác', alts.length ? `<div class="chips">${alts.map(x => `<button class="chip" ${sp(x)}>${esc(x)}</button>`).join('')}</div>` : '')}
+    ${sec('⚡ Ví dụ' + ytHtml(it), (it.example || []).map(exItem).join(''))}
 
     <a class="btn" href="practice.html?no=${it.stt}">Practice</a>`;
 }
