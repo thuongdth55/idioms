@@ -19,6 +19,7 @@
   --card:rgba(255,255,255,.05);--border:rgba(255,255,255,.08);--text:#f1f5f9;--muted:#cbd5e1;--gold:#e8a951;--hover:rgba(255,255,255,.09);
   --gold-text:#e8a951;
   --font:'Be Vietnam Pro',system-ui,sans-serif;
+  --font-idiom:'Be Vietnam Pro',system-ui,sans-serif;
   --hero:linear-gradient(135deg,#334155,#111827);
   --title:linear-gradient(90deg,#fde68a,#f97316);
   --ipa:#93c5fd;--ipa-sub:#93c5fd;--tag:rgba(255,255,255,.08);--tag-text:#cbd5e1;
