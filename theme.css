@@ -1,9 +1,10 @@
 /* Light = vocab-card.html (giấy Readera) · Dark = morpheme.html (slate + cam) */
+/* --font:Georgia,"Times New Roman",serif; */
 :root,[data-theme=light]{
   --bg:radial-gradient(circle at top left,#efe4d4,#e6d7c3 65%);--bg-solid:#e6d7c3;
   --card:#eadcc9;--border:#cdbba4;--text:#5b4636;--muted:#7a6757;--gold:#8a6b4f;--hover:#f2e7d8;
   --gold-text:#8a6b4f;
-  --font:Georgia,"Times New Roman",serif;
+  --font:"Roboto Mono",monospace;
   --hero:linear-gradient(135deg,#eadcc9,#e2d1bd);
   --title:linear-gradient(135deg,#6b9f5f 0%,#5b8f52 24%,#467a42 62%,#2f5a32 100%);
   --ipa:#4f5f73;--ipa-sub:#8a7765;--tag:#dccab3;--tag-text:#6f5b49;
