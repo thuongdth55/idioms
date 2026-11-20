@@ -74,9 +74,10 @@ function listHtml(idx) {
       <button class="pill" id="chBtn"><span class="pt">🏆 Thử tài idioms</span></button>
     </div>
     <div id="listPanel" class="list-panel" ${home ? '' : 'hidden'}>
-      <input id="search" type="search" placeholder="Tìm idiom..." autocomplete="off">
+      <input id="search" type="search" placeholder="Tìm idiom hoặc nhập stt: 1-3, 5, 8" autocomplete="off">
+      <p class="chint" id="shint"></p>
       <ul class="idiom-list ${home ? 'full' : ''}">
-        ${items.map((i, n) => `<li><a class="${n === idx ? 'cur' : ''}" href="?no=${i.stt}"><span>${esc(i.idiom)}</span></a></li>`).join('')}
+        ${items.map((i, n) => `<li data-stt="${i.stt}"><a class="${n === idx ? 'cur' : ''}" href="?no=${i.stt}"><span>${esc(i.idiom)}</span></a></li>`).join('')}
       </ul>
     </div>
     <div id="chPanel" class="block cpanel" hidden>
@@ -128,13 +129,46 @@ function bindUI() {
   };
 }
 
+// "1,2,3,5" hoặc "1-3,5" → { ranges: [[a,b],...], bad: [...] }
+function parseRanges(str) {
+  const ranges = [], bad = [];
+  str.split(/[,;\s]+/).filter(Boolean).forEach(tok => {
+    const m = tok.match(/^(\d+)(?:[-–](\d+))?$/);
+    if (!m) { bad.push(tok); return; }
+    let a = +m[1], b = m[2] === undefined ? a : +m[2];
+    if (a > b) [a, b] = [b, a];
+    ranges.push([a, b]);
+  });
+  return { ranges, bad };
+}
+
 function bindSearch() {
   const q = document.getElementById('search');
+  const hint = document.getElementById('shint');
+  // Chỉ gồm chữ số, dấu phẩy, gạch ngang, khoảng trắng → coi là danh sách stt
+  const isNos = s => /\d/.test(s) && /^[\d\s,;\-–]+$/.test(s);
+
   q.addEventListener('input', () => {
-    const k = q.value.trim().toLowerCase();
-    document.querySelectorAll('.idiom-list li').forEach(li => {
-      li.style.display = li.textContent.toLowerCase().includes(k) ? '' : 'none';
-    });
+    const raw = q.value.trim();
+    const lis = document.querySelectorAll('.idiom-list li');
+
+    if (isNos(raw)) {
+      const { ranges, bad } = parseRanges(raw);
+      let shown = 0;
+      lis.forEach(li => {
+        const n = Number(li.dataset.stt);
+        const ok = ranges.some(([a, b]) => n >= a && n <= b);
+        li.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      hint.textContent = `Hiển thị ${shown} idiom theo stt.` + (bad.length ? ` Bỏ qua: ${bad.join(', ')}` : '');
+    } else {
+      const k = raw.toLowerCase();
+      lis.forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(k) ? '' : 'none';
+      });
+      hint.textContent = '';
+    }
   });
 }
 
